@@ -24,6 +24,10 @@ if uploaded_file is not None:
     def df():
         with st.spinner('Chargemement Programme complet ...'):
             df = pd.read_excel(uploaded_file, "pgrm_complet")
+            sat5 = ['FI', 'LO', 'A3', 'SK', 'DY', 'D8']
+            sat6 = ['LH', 'LX', 'OS', 'EW', 'SN']
+            df.loc[df['Cie Ope'].isin(sat6), 'Libellé terminal'] = 'Terminal 1_6'
+            df.loc[df['Cie Ope'].isin(sat5), 'Libellé terminal'] = 'Terminal 1_5'
         st.success("Programme complet chargée !")
         return df
 
@@ -79,7 +83,7 @@ if uploaded_file is not None:
     #        name_courbes = "nouvellesCourbesPresentation"
         
         path_courbes_term = r"" + "nouvelles_courbes_presentation_PIF.xlsx"
-        list_terminaux = ['T2AC', 'T2BD', 'T2E', 'T2F', 'T2G', 'T3']
+        list_terminaux = ['T2AC', 'T2BD', 'T2E', 'T2F', 'T2G', 'T3','T1_Inter','T1_5','T1_6']
         
         path_output = r"" + "output_export_pif"
         name_output = "export_pif"
@@ -133,6 +137,7 @@ if uploaded_file is not None:
         df_pgrm_dt = df_pgrm_dt.loc[(df_pgrm_dt['Local Date'] >= start_date) & (df_pgrm_dt['Local Date'] <= end_date)]
         df_pgrm_dt.reset_index(inplace=True, drop=True)
         df_pgrm_dt['Unnamed: 0'] = df_pgrm_dt.index
+        
 
         
 
@@ -147,9 +152,10 @@ if uploaded_file is not None:
                     'C2G', 
                     'Liaison AC', 
                     'Liaison BD', 
-                    'T3']
-    #                       'Terminal 1 Jonction',
-    #                       'Terminal 1 Schengen']
+                    'T3',
+                    'Terminal 1',
+                    'Terminal 1_5',
+                    'Terminal 1_6']
             
             #                IMPLEMENTATION T1
             
@@ -250,8 +256,9 @@ if uploaded_file is not None:
             
             
     #                IMPLEMENTATION T1
-    #            l_a_t1_j = df.loc[(df['A/D'] == "A") & (df['Libellé terminal'] == "Terminal 1 Jonction")]
-    #            l_a_t1_s = df.loc[(df['A/D'] == "A") & (df['Libellé terminal'] == "Terminal 1 Schengen")]
+            l_a_t1_j = df.loc[(df['A/D'] == "A") & (df['Libellé terminal'] == "Terminal 1")]
+            l_a_t1_5 = df.loc[(df['A/D'] == "A") & (df['Libellé terminal'] == "Terminal 1_5")]
+            l_a_t1_6 = df.loc[(df['A/D'] == "A") & (df['Libellé terminal'] == "Terminal 1_6")]
             
             l_a_ac = df.loc[(df['Libellé terminal'] == "Terminal 2A") | (df['Libellé terminal'] == "Terminal 2C")]
             l_a_ac = l_a_ac.loc[l_a_ac['A/D'] == "A"]
@@ -268,9 +275,10 @@ if uploaded_file is not None:
             l_d_g = df.loc[(df['A/D'] == "D") & (df['Libellé terminal'] == "G")]
             
     #                IMPLEMENTATION T1
-    #            l_d_t1_j = df.loc[(df['A/D'] == "D") & (df['Libellé terminal'] == "Terminal 1 Jonction")]
-    #            l_d_t1_s = df.loc[(df['A/D'] == "D") & (df['Libellé terminal'] == "Terminal 1 Schengen")]
-            
+            l_d_t1_j = df.loc[(df['A/D'] == "D") & (df['Libellé terminal'] == "Terminal 1")]
+            l_d_t1_5 = df.loc[(df['A/D'] == "D") & (df['Libellé terminal'] == "Terminal 1_5")]
+            l_d_t1_6 = df.loc[(df['A/D'] == "D") & (df['Libellé terminal'] == "Terminal 1_6")]
+
             l_d_ac = df.loc[(df['Libellé terminal'] == "Terminal 2A") | (df['Libellé terminal'] == "Terminal 2C")]
             l_d_ac = l_d_ac.loc[l_d_ac['A/D'] == "D"]
             l_d_bd = df.loc[(df['Libellé terminal'] == "Terminal 2B") | (df['Libellé terminal'] == "Terminal 2D")]
@@ -310,13 +318,16 @@ if uploaded_file is not None:
     #                IMPLEMENTATION T1
             
     #                Terminal 1 Jonction
-    #            l_a_t1_j_am = l_a_t1_j.loc[(l_a_t1_j['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_a_t1_j['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
-    #            l_a_t1_j_pm = l_a_t1_j.loc[(l_a_t1_j['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
+            l_a_t1_j_am = l_a_t1_j.loc[(l_a_t1_j['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_a_t1_j['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
+            l_a_t1_j_pm = l_a_t1_j.loc[(l_a_t1_j['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
     #                
     ##                Terminal 1 Schengen
-    #            l_a_t1_s_am = l_a_t1_s.loc[(l_a_t1_s['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_a_t1_s['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
-    #            l_a_t1_s_pm = l_a_t1_s.loc[(l_a_t1_s['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
-            
+            l_a_t1_5_am = l_a_t1_5.loc[(l_a_t1_5['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_a_t1_5['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
+            l_a_t1_5_pm = l_a_t1_5.loc[(l_a_t1_5['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
+
+            l_a_t1_6_am = l_a_t1_6.loc[(l_a_t1_6['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_a_t1_6['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
+            l_a_t1_6_pm = l_a_t1_6.loc[(l_a_t1_6['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
+                       
             
             l_d_k_am = l_d_k.loc[(l_d_k['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_d_k['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
             l_d_k_pm = l_d_k.loc[(l_d_k['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
@@ -348,14 +359,16 @@ if uploaded_file is not None:
     #                IMPLEMENTATION T1
             
     #                Terminal 1 Jonction
-    #            l_d_t1_j_am = l_d_t1_j.loc[(l_d_t1_j['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_d_t1_j['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
-    #            l_d_t1_j_pm = l_d_t1_j.loc[(l_d_t1_j['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
+            l_d_t1_j_am = l_d_t1_j.loc[(l_d_t1_j['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_d_t1_j['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
+            l_d_t1_j_pm = l_d_t1_j.loc[(l_d_t1_j['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
     #                
     ##                Terminal 1 Schengen
-    #            l_d_t1_s_am = l_d_t1_s.loc[(l_d_t1_s['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_d_t1_s['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
-    #            l_d_t1_s_pm = l_d_t1_s.loc[(l_d_t1_s['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
+            l_d_t1_5_am = l_d_t1_5.loc[(l_d_t1_5['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_d_t1_5['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
+            l_d_t1_5_pm = l_d_t1_5.loc[(l_d_t1_5['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
             
-            
+            l_d_t1_6_am = l_d_t1_6.loc[(l_d_t1_6['Horaire théorique'] >= hyp_rep['heure_debut'][0]) & (l_d_t1_6['Horaire théorique'] < hyp_rep['heure_fin'][0])]   
+            l_d_t1_6_pm = l_d_t1_6.loc[(l_d_t1_6['Horaire théorique'] >= hyp_rep['heure_fin'][0])]
+                       
             
         #    K CNT
     #            Dans chaque colonne de dispatch on a les batteries de PIF, 
@@ -394,7 +407,7 @@ if uploaded_file is not None:
                         [l_a_k_am['Pax CNT TOT'] * hyp_k_m_am, l_a_k_pm['Pax CNT TOT'] * hyp_k_m_pm,
                         l_a_l_am['Pax CNT TOT'] * hyp_l_m_am, l_a_l_pm['Pax CNT TOT'] * hyp_l_m_pm,
                         l_a_m_am['Pax CNT TOT'] * hyp_m_l_am, l_a_m_pm['Pax CNT TOT'] * hyp_m_l_pm,
-                        l_d_m_am['PAX TOT'], l_d_m_pm['PAX TOT']])
+                        l_d_m_am['Pax LOC TOT'], l_d_m_pm['Pax LOC TOT']])
             
         #    Galerie EF
             dispatch_df['Galerie EF'] = reduce(lambda a, b: a.add(b, fill_value = 0), 
@@ -429,12 +442,14 @@ if uploaded_file is not None:
     #                IMPLEMENTATION T1
             
             #    Terminal 1 Jonction
-    #            dispatch_df['Terminal 1 Jonction'] = reduce(lambda a, b: a.add(b, fill_value = 0), 
-    #                       [l_d_t1_j_am['PAX TOT'], l_d_t1_j_pm['PAX TOT']])
+            dispatch_df['Terminal 1'] = reduce(lambda a, b: a.add(b, fill_value = 0), 
+                       [l_d_t1_j_am['PAX TOT'], l_d_t1_j_pm['PAX TOT']])
                 
     #            #    Terminal 1 Schengen
-    #            dispatch_df['Terminal 1 Schengen'] = reduce(lambda a, b: a.add(b, fill_value = 0), 
-    #                       [l_d_t1_s_am['PAX TOT'], l_d_t1_s_pm['PAX TOT']])
+            dispatch_df['Terminal 1_5'] = reduce(lambda a, b: a.add(b, fill_value = 0), 
+                       [l_d_t1_5_am['PAX TOT'], l_d_t1_5_pm['PAX TOT']])
+            dispatch_df['Terminal 1_6'] = reduce(lambda a, b: a.add(b, fill_value = 0), 
+                       [l_d_t1_6_am['PAX TOT'], l_d_t1_6_pm['PAX TOT']])           
         
             dispatch_df.fillna(0, inplace=True)
         
@@ -480,6 +495,9 @@ if uploaded_file is not None:
         l_courbe_geo_t.append((liste_df_courbe_presentation_terminal[3][0], courbe(dec, liste_df_courbe_presentation_terminal[3][1]))) #2F
         l_courbe_geo_t.append((liste_df_courbe_presentation_terminal[4][0], courbe(dec + 4, liste_df_courbe_presentation_terminal[4][1]))) #2G
         l_courbe_geo_t.append((liste_df_courbe_presentation_terminal[5][0], courbe(dec + 3, liste_df_courbe_presentation_terminal[5][1]))) #T3
+        l_courbe_geo_t.append((liste_df_courbe_presentation_terminal[5][0], courbe(dec + 3, liste_df_courbe_presentation_terminal[6][1]))) #T1 Inter
+        l_courbe_geo_t.append((liste_df_courbe_presentation_terminal[5][0], courbe(dec + 3, liste_df_courbe_presentation_terminal[7][1]))) #T1_5
+        l_courbe_geo_t.append((liste_df_courbe_presentation_terminal[5][0], courbe(dec + 3, liste_df_courbe_presentation_terminal[8][1]))) #T1_6
         
         #st.write(l_courbe_geo_t)
         
@@ -571,11 +589,15 @@ if uploaded_file is not None:
 
     #                IMPLEMENTATION T1
             
-    #            pax_od_t1_j = [[] for i in range(len(l_courbe))]
-    #            pax_od_t1_j_i = [[] for i in range(len(l_courbe))]
-    #                
-    #            pax_od_t1_s = [[] for i in range(len(l_courbe))]
-    #            pax_od_t1_s_i = [[] for i in range(len(l_courbe))]
+            pax_od_t1_j = [[] for i in range(len(l_courbe_t[6][1]))]
+            pax_od_t1_j_i = [[] for i in range(len(l_courbe_t[6][1]))]
+                
+            pax_od_t1_5 = [[] for i in range(len(l_courbe_t[7][1]))]
+            pax_od_t1_5_i = [[] for i in range(len(l_courbe_t[7][1]))]
+
+            pax_od_t1_6 = [[] for i in range(len(l_courbe_t[7][1]))]
+            pax_od_t1_6_i = [[] for i in range(len(l_courbe_t[7][1]))]
+
             import time as tm
             start5 = tm.time()
 
@@ -702,50 +724,35 @@ if uploaded_file is not None:
                         if dispatch_df['Prov Dest'][r] in l_f_iata[i]:
                             pax_od_t3[i].append(index_t3)
                             pax_od_t3_i[i].append(r)
-                        
-            
-    #                IMPLEMENTATION T1
                             
-    #            #        Terminal 1 jonction
-    #                if dispatch_df['Terminal 1 jonction'][r] != 0:
-    #                    m = dispatch_df['Horaire théorique'][r]
-    #                    if str(m).endswith("5:00"):
-    #                        
-    #                        t = '0:00'.join(str(dispatch_df['Horaire théorique'][r]).rsplit('5:00', 1))
-    #                        l = [int(k) for k in t.split(':')]
-    #                        time_r = time(hour = l[0], minute = l[1], second = l[2])
-    #                        index_t1_j = df_site[11][1].loc[(df_site[11][1]['heure'] == time_r)
-    #                                    & (dispatch_df['Local Date'][r] == df_site[11][1]['jour'])].index
-    #                        
-    #                    else:
-    #                        index_t1_j = df_site[11][1].loc[(dispatch_df['Horaire théorique'][r] == df_site[11][1]['heure'])
-    #                                    & (dispatch_df['Local Date'][r] == df_site[11][1]['jour'])].index
-    #                    
-    #                    for i in range(len(l_courbe)):
-    #                        if dispatch_df['Prov Dest'][r] in l_f_iata[i]:
-    #                            pax_od_t1_j[i].append(index_t1_j)
-    #                            pax_od_t1_j_i[i].append(r)
-    #                
-    #        #        Terminal 1 Schengen
-    #                if dispatch_df['Terminal 1 Schengen'][r] != 0:
-    #                    m = dispatch_df['Horaire théorique'][r]
-    #                    if str(m).endswith("5:00"):
-    #                        
-    #                        t = '0:00'.join(str(dispatch_df['Horaire théorique'][r]).rsplit('5:00', 1))
-    #                        l = [int(k) for k in t.split(':')]
-    #                        time_r = time(hour = l[0], minute = l[1], second = l[2])
-    #                        index_t1_s = df_site[12][1].loc[(df_site[12][1]['heure'] == time_r)
-    #                                    & (dispatch_df['Local Date'][r] == df_site[12][1]['jour'])].index
-    #                        
-    #                    else:
-    #                        index_t1_s = df_site[12][1].loc[(dispatch_df['Horaire théorique'][r] == df_site[12][1]['heure'])
-    #                                    & (dispatch_df['Local Date'][r] == df_site[12][1]['jour'])].index
-    #                    
-    #                    for i in range(len(l_courbe)):
-    #                        if dispatch_df['Prov Dest'][r] in l_f_iata[i]:
-    #                            pax_od_t1_s[i].append(index_t1_s)
-    #                            pax_od_t1_s_i[i].append(r)
+        #        Terminal 1 jonction
+                if dispatch_df['Terminal 1'][r] != 0:
+                    index_t1_j = df_site['Terminal 1'].loc[(dispatch_df['Horaire théorique'][r] == df_site['Terminal 1']['heure'])
+                                    & (dispatch_df['Local Date'][r] == df_site['Terminal 1']['jour'])].index
                     
+                    for i in range(len(l_courbe_t[6][1])):
+                        if dispatch_df['Prov Dest'][r] in l_f_iata[i]:
+                            pax_od_t1_j[i].append(index_t1_j)
+                            pax_od_t1_j_i[i].append(r)
+                
+        #        Terminal 1 Schengen 5 et 6
+                if dispatch_df['Terminal 1_5'][r] != 0:
+                    index_t1_5 = df_site['Terminal 1_5'].loc[(dispatch_df['Horaire théorique'][r] == df_site['Terminal 1_5']['heure'])
+                                    & (dispatch_df['Local Date'][r] == df_site['Terminal 1_5']['jour'])].index
+                    
+                    for i in range(len(l_courbe_t[7][1])):
+                        if dispatch_df['Prov Dest'][r] in l_f_iata[i]:
+                            pax_od_t1_5[i].append(index_t1_5)
+                            pax_od_t1_5_i[i].append(r)
+
+                if dispatch_df['Terminal 1_6'][r] != 0:
+                    index_t1_6 = df_site['Terminal 1_6'].loc[(dispatch_df['Horaire théorique'][r] == df_site['Terminal 1_6']['heure'])
+                                    & (dispatch_df['Local Date'][r] == df_site['Terminal 1_6']['jour'])].index
+                    
+                    for i in range(len(l_courbe_t[8][1])):
+                        if dispatch_df['Prov Dest'][r] in l_f_iata[i]:
+                            pax_od_t1_6[i].append(index_t1_6)
+                            pax_od_t1_6_i[i].append(r)                    
                 
                 if r%500==0:
                     print(str(r)+"/"+str(dispatch_df.shape[0]))
@@ -870,6 +877,35 @@ if uploaded_file is not None:
                 df_site['T3']['charge'] += convo_t3
             my_bar.progress(o +10)
             o += 10
+
+                       
+            for i in range(len(pax_od_t1_j)):
+                df_charge = CREATE_DF_SITE(dispatch_df, "temp")
+                for value_index in range(len(pax_od_t1_j[i])):
+                    df_charge['charge'][pax_od_t1_j[i][value_index]] += dispatch_df['Terminal 1'][pax_od_t1_j_i[i][value_index]]
+                
+                print(str(l_courbe_t[6][1][i][0]) + " " + str(round(100 * (i + 1) / len(pax_od_t1_j), 0)) +"%")
+                convo_t1 = list(signal.convolve(df_charge['charge'].tolist(), l_courbe_t[6][1][i][1], mode='same'))
+                df_site['Terminal 1']['charge'] += convo_t1
+
+            for i in range(len(pax_od_t1_5)):
+                df_charge = CREATE_DF_SITE(dispatch_df, "temp")
+                for value_index in range(len(pax_od_t1_5[i])):
+                    df_charge['charge'][pax_od_t1_5[i][value_index]] += dispatch_df['Terminal 1_5'][pax_od_t1_5_i[i][value_index]]
+                
+                print(str(l_courbe_t[7][1][i][0]) + " " + str(round(100 * (i + 1) / len(pax_od_t1_5), 0)) +"%")
+                convo_t1_5 = list(signal.convolve(df_charge['charge'].tolist(), l_courbe_t[7][1][i][1], mode='same'))
+                df_site['Terminal 1_5']['charge'] += convo_t1_5
+
+            for i in range(len(pax_od_t1_6)):
+                df_charge = CREATE_DF_SITE(dispatch_df, "temp")
+                for value_index in range(len(pax_od_t1_6[i])):
+                    df_charge['charge'][pax_od_t1_6[i][value_index]] += dispatch_df['Terminal 1_6'][pax_od_t1_6_i[i][value_index]]
+                
+                print(str(l_courbe_t[8][1][i][0]) + " " + str(round(100 * (i + 1) / len(pax_od_t1_6), 0)) +"%")
+                convo_t1_6 = list(signal.convolve(df_charge['charge'].tolist(), l_courbe_t[8][1][i][1], mode='same'))
+                df_site['Terminal 1_6']['charge'] += convo_t1_6
+
 
             
         #   PAX CNT : on utilise courbe_deb
