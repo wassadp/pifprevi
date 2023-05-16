@@ -31,30 +31,30 @@ c1, c2 = st.columns(2)
 
 uploaded_file = c1.file_uploader("Ancien code :", key=1)
 if uploaded_file is not None:
-    @st.cache()
+    @st.cache_data()
     def oldd():
         return pd.read_csv(uploaded_file, sep=";")
     old = oldd()
     uploaded_file1 = c2.file_uploader("Nouveau code :", key=2)
     if uploaded_file1 is not None:
-        @st.cache()
+        @st.cache_data()
         def neww():
             return pd.read_excel(uploaded_file1, engine='openpyxl')
         new = neww()
         c3, c4 = st.columns(2)
         uploaded_file2 = c3.file_uploader("Nouveau code affiné :", key=3)    
         if uploaded_file2 is not None:
-            @st.cache()
+            @st.cache_data()
             def new_courbee():
                 return pd.read_excel(uploaded_file2, engine='openpyxl')
             new_courbe = new_courbee()
             uploaded_file3 = c4.file_uploader("Réalisé :", key=4)
             if uploaded_file3 is not None:
-                @st.cache()
+                @st.cache_data()
                 def reall():
                     return pd.read_excel(uploaded_file3, engine='openpyxl', skiprows=3)
                 real = reall()
-# @st.cache()
+# @st.cache_data()
 # def openn():
 #     columns = ['jour','heure','charge','site']
 #     new  = pd.read_excel("export_pif_du_2023-03-16_au_2023-03-26 (V2).xlsx")
@@ -91,7 +91,7 @@ if uploaded_file is not None:
                     return time_r
 
 
-                @st.cache()
+                @st.cache_data()
                 def old1(old):
                     start_date = pd.to_datetime(debut)
                     end_date = pd.to_datetime(fin) 
@@ -123,7 +123,7 @@ if uploaded_file is not None:
                     #old.to_excel(writer, sheet_name='Ancien_code', index=False)
                     return old
 
-                @st.cache()
+                @st.cache_data()
                 def new1(new):
                     z=2
                     start_date = pd.to_datetime(debut)
@@ -136,7 +136,7 @@ if uploaded_file is not None:
                     return new
 
 
-                @st.cache()
+                @st.cache_data()
                 def new_courbe1(new_courbe):
                     start_date = pd.to_datetime(debut)
                     end_date = pd.to_datetime(fin)
@@ -147,7 +147,7 @@ if uploaded_file is not None:
                     #new_courbe.to_excel(writer, sheet_name='new_courbe', index=False)
                     return new_courbe
 
-                @st.cache()
+                @st.cache_data()
                 def real1(real): 
                     start_date = pd.to_datetime(debut)
                     end_date = pd.to_datetime(fin)
@@ -204,7 +204,7 @@ if uploaded_file is not None:
                 new_courbe = new_courbe1(new_courbe)
                 real = real1(real)
 
-                @st.cache()
+                @st.cache_data()
                 def merge():
                     start_date = pd.to_datetime(debut)
                     end_date = pd.to_datetime(fin) 

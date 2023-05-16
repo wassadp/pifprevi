@@ -28,7 +28,7 @@ st.subheader("Programme complet :")
 
 uploaded_file = st.file_uploader("Choisir un fichier :", key=1)
 if uploaded_file is not None:
-    @st.cache(suppress_st_warning=True,allow_output_mutation=True)
+    @st.cache_data(ttl=90)
     def df():
         with st.spinner('Chargemement Programme complet ...'):
             df = pd.read_excel(uploaded_file, "pgrm_complet")
