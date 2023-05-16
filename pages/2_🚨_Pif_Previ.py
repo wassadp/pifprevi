@@ -20,7 +20,7 @@ st.title('🚨 Pif Prévi')
 st.subheader("Programme complet :")
 uploaded_file = st.file_uploader("Choisir un fichier :", key=1)
 if uploaded_file is not None:
-    @st.cache(suppress_st_warning=True,allow_output_mutation=True)
+    @st.cache_data(ttl=90)
     def df():
         with st.spinner('Chargemement Programme complet ...'):
             df = pd.read_excel(uploaded_file, "pgrm_complet")
@@ -36,11 +36,9 @@ if uploaded_file is not None:
     l_date = pd.to_datetime(df_pgrm['Local Date'].unique().tolist()).date
     l_date = sorted(l_date)
 
-    @st.cache(suppress_st_warning=True,allow_output_mutation=True)
     def get_pif_in_fichier_config(pif):
         return pd.read_excel("fichier_config_PIF.xlsx", sheet_name=pif)
     
-    @st.cache(suppress_st_warning=True,allow_output_mutation=True)
     def get_pif():
         df = pd.read_excel("fichier_config_PIF.xlsx", sheet_name="Config")
         df = df.fillna("XXXXX")
@@ -57,7 +55,6 @@ if uploaded_file is not None:
     uploaded_file1 = st.file_uploader("Choisir le fichier hypotheses_repartition_correspondances.xlsx :", key=4)
     if uploaded_file1 is not None:
 
-        @st.cache(suppress_st_warning=True,allow_output_mutation=True)
         def COURBE_PRES(t):
             df = pd.read_excel('courbes_presentation_V5.xlsx', t)
             return df  

@@ -14,6 +14,8 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
+download = False # stop le rerun de l'app
+
 ######### Input #########
 
 #   Noms des feuilles, peut changer dans le temps si qqn le modifie
@@ -23,7 +25,6 @@ name_sheet_af = "Programme brut"
 
 st.subheader("Prévision activité AF 1 :")
 
-@st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def get_dispatch_sat_T1(sat):
     df = pd.read_excel("fichier_config_PIF.xlsx", sheet_name="dispatch_sat")
     df = df.fillna("XXXXX")
@@ -31,8 +32,8 @@ def get_dispatch_sat_T1(sat):
 
 
 uploaded_file = st.file_uploader("Choisir un fichier :", key=1)
-if uploaded_file is not None:
-    @st.cache(suppress_st_warning=True, allow_output_mutation=True)
+if uploaded_file is not None and download is False:
+    @st.cache_data(ttl=60)
     def previ_af():
         with st.spinner('Chargemement prévision AF 1 ...'):
             df_af_1 = pd.read_excel(uploaded_file,name_sheet_af,usecols=['A/D', 'Cie Ope', 'Num Vol', 'Porteur', 'Type Avion', 'Prov Dest', 'Affectation',
@@ -52,7 +53,7 @@ if uploaded_file is not None:
     st.subheader("Prévision activité ADP :")
     uploaded_file2 = st.file_uploader("Choisir un fichier :", key=3)
     if uploaded_file2 is not None:
-        @st.cache(suppress_st_warning=True, allow_output_mutation=True)
+        @st.cache_data(ttl=90)
         def previ_adp():
             with st.spinner('Chargemement prévision ADP ...'):
                 df_cies_1 = pd.read_excel(uploaded_file2)
@@ -192,7 +193,7 @@ if uploaded_file is not None:
             )
         
 
-        st.stop()
+            download = True
         # st.markdown('<a href="/" target="_self">Revenir à l\'Accueil</a>', unsafe_allow_html=True)
         # st.markdown('<a href="/Pif_Previ_" target="_self">Aller directement à l\'outils Pif prévi</a>', unsafe_allow_html=True)
 
