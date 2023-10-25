@@ -13,7 +13,6 @@ import locale
 from openpyxl.styles import Font
 import itertools
 from datetime import datetime, timedelta
-from streamlit_extras.app_logo import add_logo
 import io
 from pyxlsb import open_workbook as open_xlsb
 import re
