@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from streamlit_extras.app_logo import add_logo
 import io
 from pyxlsb import open_workbook as open_xlsb
+import re
 locale.setlocale(locale.LC_ALL, "fr_FR")
 
 st.title("✅ Macro final")
@@ -36,13 +37,18 @@ df_config['site'] = ['K CTR', 'K CNT', 'L CTR', 'L CNT', 'M CTR', 'Galerie EF', 
 
 df_config['Abattement (%)'] = 0
 
- 
+df_sheet = pd.DataFrame(
+    [
+       {"Pif(s)": "K_CTR,K_CNT", "Supprimer": False, "Ajouter": True},
+       {"Pif(s)": "K_CTR", "Supprimer": True, "Ajouter": False},
+       {"Pif(s)": "K_CNT", "Supprimer": True, "Ajouter": False},
+   ]
+)
+
+st.divider()
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
-    df1 = pd.DataFrame(columns=df.columns)
-    wb= Workbook()
-    writer = pd.ExcelWriter('multiple3.xlsx', engine='xlsxwriter')
 
     start_date = pd.to_datetime(uploaded_file.name[14:24])
     end_date = pd.to_datetime(uploaded_file.name[28:38])  
@@ -57,25 +63,39 @@ if uploaded_file is not None:
     export_pif_7_jours = df.loc[mask_dissocie_2]
     export_pif_7_jours.name = "export_pif_7jours"
 
+    st.divider()
+ 
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write("Gestion de l'abattement et de l'ordre des feuilles :")
+        df_config = st.data_editor(df_config)
+    with col2:
+        st.write("Gestion des feuilles :")
+        df_sheet = st.data_editor(df_sheet,  num_rows="dynamic")
 
-    st.write("Gestion de l'abattement et de l'ordre des feuilles :")
 
-    df_config = st.data_editor(df_config)
+    sheet_to_delete = df_sheet[df_sheet['Supprimer']]["Pif(s)"].to_list()
+    sheet_to_sum = df_sheet[df_sheet['Ajouter']]["Pif(s)"].to_list()
 
+    sheet_to_sum = [re.split(r"[-;,.\s]\s*", item) for item in sheet_to_sum]
+    st.write(sheet_to_sum)
+    st.divider()
 
-    on = st.toggle('Dissocié')
+    col11, col22 = st.columns([1, 2])
+    on = col11.toggle('Dissocié')
 
     if not on:
-        st.write('Le fichier restera unique')
+        col22.write('Le fichier est unique')
         dataframe = [df]
 
     if on:
-        st.write('Le fichier sera dissocié en deux fichiers distinct')
+        col22.write('Le fichier sera dissocié en deux fichiers distinct')
         dataframe = [export_pif_4_jours, export_pif_7_jours]
 
 
 
     def clean(df,i):
+        
         df['Total'] = df.iloc[:, 1:145].sum(axis=1)
         df['Numéro de Jour'] = df['jour'].dt.day
         df['Date complète'] = df['jour'].dt.strftime('%d/%m/%Y')
@@ -104,13 +124,14 @@ if uploaded_file is not None:
 
 
 
-  
+    st.divider()
     buffer = io.BytesIO()
 
     if not on:
         with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
             # Write each dataframe to a different worksheet.
             site = []
+            df_site = []
             for i in df_config.site.unique():
                 name = str(i).replace(" ", "_")
                 site += [name]
@@ -125,7 +146,9 @@ if uploaded_file is not None:
                     for i in range(5,150):
                         name.iloc[:,i] *= (100-df_config[mask]['Abattement (%)'].iloc[0])/100
 
+                df_site += [name]
                 name.to_excel(writer, sheet_name=str(i).replace(" ", "_"), index=False)
+            st.write(df_site)    
             writer.close()
 
             st.download_button(
