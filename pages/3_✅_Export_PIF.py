@@ -12,91 +12,25 @@ import calendar
 import locale
 from openpyxl.styles import Font
 import itertools
-from datetime import datetime, timedelta
-from streamlit_extras.app_logo import add_logo
-import io
-from pyxlsb import open_workbook as open_xlsb
-import re
+from datetime import datetime
 locale.setlocale(locale.LC_ALL, "fr_FR")
 
 st.title("✅ Macro final")
-#add_logo("Logo_Groupe_ADP.png")
 st.write("Macro du fichier Export_pif final")
 
 def findDay(date):
     born = datetime.datetime.strptime(date, '%d %m %Y').weekday()
     return (calendar.day_name[born])   
-
-
-data = []
-
-df_config = pd.DataFrame(data)
-
-df_config['site'] = ['K CTR', 'K CNT', 'L CTR', 'L CNT', 'M CTR', 'Galerie EF', 'C2F', 'C2G', 'Liaison BD',
-                    'T3', 'Terminal 1', 'Terminal 1_5', 'Terminal 1_6']
-
-df_config['Abattement (%)'] = 0
-
-df_sheet = pd.DataFrame(
-    [
-       {"Pif(s)": "K_CTR,K_CNT", "Supprimer": False, "Ajouter": True},
-       {"Pif(s)": "K_CTR", "Supprimer": True, "Ajouter": False},
-       {"Pif(s)": "K_CNT", "Supprimer": True, "Ajouter": False},
-   ]
-)
-
-st.divider()
+ 
 uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
-
-    start_date = pd.to_datetime(uploaded_file.name[14:24])
-    end_date = pd.to_datetime(uploaded_file.name[28:38])  
-
-    mask = (df['jour'] >= start_date) & (df['jour'] <= end_date)
-    mask_dissocie_1 = (df['jour'] >= start_date) & (df['jour'] <= end_date - timedelta(days=7))
-    mask_dissocie_2 = (df['jour'] >= start_date + timedelta(days=4)) & (df['jour'] <= end_date)
-
-    df = df.loc[mask]
-    export_pif_4_jours = df.loc[mask_dissocie_1]
-    export_pif_4_jours.name = "export_pif_4jours"
-    export_pif_7_jours = df.loc[mask_dissocie_2]
-    export_pif_7_jours.name = "export_pif_7jours"
-
-    st.divider()
- 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("Gestion de l'abattement et de l'ordre des feuilles :")
-        df_config = st.data_editor(df_config)
-    with col2:
-        st.write("Gestion des feuilles :")
-        df_sheet = st.data_editor(df_sheet,  num_rows="dynamic")
-
-
-    sheet_to_delete = df_sheet[df_sheet['Supprimer']]["Pif(s)"].to_list()
-    sheet_to_sum = df_sheet[df_sheet['Ajouter']]["Pif(s)"].to_list()
-
-    sheet_to_sum = [re.split(r"[-;,.\s]\s*", item) for item in sheet_to_sum]
-    st.write(sheet_to_sum)
-    st.divider()
-
-    col11, col22 = st.columns([1, 2])
-    on = col11.toggle('Dissocié')
-
-    if not on:
-        col22.write('Le fichier est unique')
-        dataframe = [df]
-
-    if on:
-        col22.write('Le fichier sera dissocié en deux fichiers distinct')
-        dataframe = [export_pif_4_jours, export_pif_7_jours]
-
-
+    df1 = pd.DataFrame(columns=df.columns)
+    wb= Workbook()
+    writer = pd.ExcelWriter('multiple3.xlsx', engine='xlsxwriter')
 
     def clean(df,i):
-        
-        df['Total'] = df.iloc[:, 1:145].sum(axis=1)
+        df['SOMME PAX LOCAUX DE LA JOURNEE'] = df.iloc[:, 1:145].sum(axis=1)
         df['Numéro de Jour'] = df['jour'].dt.day
         df['Date complète'] = df['jour'].dt.strftime('%d/%m/%Y')
         df['Jour de la semaine'] = df['jour'].dt.day_name(locale="fr_FR")     
@@ -123,66 +57,28 @@ if uploaded_file is not None:
         return (calendar.day_name[born])    
 
 
-
-    st.divider()
+    import io
+    from pyxlsb import open_workbook as open_xlsb
+  
     buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        # Write each dataframe to a different worksheet.
+        site = []
+        for i in df.site.unique():
+            name = str(i).replace(" ", "_")
+            site += [name]
+            name = df.copy()
+            name = name[name['site'] == i]
+            name = name.pivot_table(values='charge', index='jour', columns=['heure'], aggfunc='first')
+            name.reset_index(inplace=True)
+            name.fillna(0, inplace=True)
+            clean(name,i)
+            name.to_excel(writer, sheet_name=str(i).replace(" ", "_"), index=False)
+        writer.close()
 
-    if not on:
-        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-            # Write each dataframe to a different worksheet.
-            site = []
-            df_site = []
-            for i in df_config.site.unique():
-                name = str(i).replace(" ", "_")
-                site += [name]
-                name = df.copy()
-                name = name[name['site'] == i]
-                name = name.pivot_table(values='charge', index='jour', columns=['heure'], aggfunc='first')
-                name.reset_index(inplace=True)
-                name.fillna(0, inplace=True)
-                clean(name,i)
-                mask = df_config['site'] == i
-                if df_config[mask]['Abattement (%)'].iloc[0] != 0:
-                    for i in range(5,150):
-                        name.iloc[:,i] *= (100-df_config[mask]['Abattement (%)'].iloc[0])/100
-
-                df_site += [name]
-                name.to_excel(writer, sheet_name=str(i).replace(" ", "_"), index=False)
-            st.write(df_site)    
-            writer.close()
-
-            st.download_button(
-            label="Télécharger fichier Export pif",
-            data=buffer,
-            file_name="export_pif.xlsx",
-            mime="application/vnd.ms-excel"
-            )
-
-    if on:
-        for df in dataframe:
-            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                # Write each dataframe to a different worksheet.
-                site = []
-                for i in df_config.site.unique():
-                    name = str(i).replace(" ", "_")
-                    site += [name]
-                    name = df.copy()
-                    name = name[name['site'] == i]
-                    name = name.pivot_table(values='charge', index='jour', columns=['heure'], aggfunc='first')
-                    name.reset_index(inplace=True)
-                    name.fillna(0, inplace=True)
-                    clean(name,i)
-                    mask = df_config['site'] == i
-                    if df_config[mask]['Abattement (%)'].iloc[0] != 0:
-                        for o in range(5,150):
-                            name.iloc[:,o] *= (100-df_config[mask]['Abattement (%)'].iloc[0])/100
-
-                    name.to_excel(writer, sheet_name=str(i).replace(" ", "_"), index=False)
-                writer.close()
-
-                st.download_button(
-                label="Télécharger fichier " + df.name,
-                data=buffer,
-                file_name= df.name + ".xlsx",
-                mime="application/vnd.ms-excel"
-                )
+        st.download_button(
+        label="Télécharger fichier Export pif",
+        data=buffer,
+        file_name="export_pif.xlsx",
+        mime="application/vnd.ms-excel"
+        )
