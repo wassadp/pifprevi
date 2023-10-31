@@ -58,9 +58,9 @@ if uploaded_file is not None:
 
     df = df.loc[mask]
     export_pif_4_jours = df.loc[mask_dissocie_1]
-    export_pif_4_jours.name = "export_pif_4jours"
+    export_pif_4_jours.filename = "export_pif_4jours"
     export_pif_7_jours = df.loc[mask_dissocie_2]
-    export_pif_7_jours.name = "export_pif_7jours"
+    export_pif_7_jours.filename = "export_pif_7jours"
 
     st.divider()
  
@@ -78,17 +78,20 @@ if uploaded_file is not None:
 
     sheet_to_sum = [re.split(r"[-;,.\s]\s*", item) for item in sheet_to_sum]
     st.write(sheet_to_sum)
+
+    
+    
     st.divider()
 
     col11, col22 = st.columns([1, 2])
     on = col11.toggle('Dissocié')
 
     if not on:
-        col22.write('Le fichier est unique')
+        col22.write('Le fichier est **unique**')
         dataframe = [df]
 
     if on:
-        col22.write('Le fichier sera dissocié en deux fichiers distinct')
+        col22.write('Le fichier sera dissocié en **deux fichiers distinct**')
         dataframe = [export_pif_4_jours, export_pif_7_jours]
 
 
@@ -130,7 +133,7 @@ if uploaded_file is not None:
         with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
             # Write each dataframe to a different worksheet.
             site = []
-            df_site = []
+            df_site = {}
             for i in df_config.site.unique():
                 name = str(i).replace(" ", "_")
                 site += [name]
@@ -139,15 +142,15 @@ if uploaded_file is not None:
                 name = name.pivot_table(values='charge', index='jour', columns=['heure'], aggfunc='first')
                 name.reset_index(inplace=True)
                 name.fillna(0, inplace=True)
+                df_site[i] = name
                 clean(name,i)
                 mask = df_config['site'] == i
                 if df_config[mask]['Abattement (%)'].iloc[0] != 0:
-                    for i in range(5,150):
-                        name.iloc[:,i] *= (100-df_config[mask]['Abattement (%)'].iloc[0])/100
-
-                df_site += [name]
+                    for o in range(5,len(name.columns)):
+                        name.iloc[:,o] *= (100-df_config[mask]['Abattement (%)'].iloc[0])/100
+               
                 name.to_excel(writer, sheet_name=str(i).replace(" ", "_"), index=False)
-            st.write(df_site)    
+
             writer.close()
 
             st.download_button(
@@ -173,15 +176,14 @@ if uploaded_file is not None:
                     clean(name,i)
                     mask = df_config['site'] == i
                     if df_config[mask]['Abattement (%)'].iloc[0] != 0:
-                        for o in range(5,150):
+                        for o in range(5,len(name.columns)):
                             name.iloc[:,o] *= (100-df_config[mask]['Abattement (%)'].iloc[0])/100
-
                     name.to_excel(writer, sheet_name=str(i).replace(" ", "_"), index=False)
                 writer.close()
 
                 st.download_button(
-                label="Télécharger fichier " + df.name,
+                label="Télécharger fichier " + df.filename,
                 data=buffer,
-                file_name= df.name + ".xlsx",
+                file_name= df.filename + ".xlsx",
                 mime="application/vnd.ms-excel"
                 )
