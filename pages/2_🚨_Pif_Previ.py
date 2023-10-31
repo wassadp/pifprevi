@@ -57,17 +57,14 @@ if uploaded_file is not None:
     ["**Winter** :snowflake:", "**Summer** :sun_with_face:"],
     horizontal=True)
 
-
-
     def get_hyp_rep(pifs):
         return pd.read_excel("hyp_rep.xlsx", sheet_name=pifs)
 
     def COURBE_PRES(t):
-        if saison_IATA == "Winter":
-            df = pd.read_excel('courbes_presentation_Winter.xlsx', t)
-        if saison_IATA == "Summer":
-            df = pd.read_excel('courbes_presentation_Summer.xlsx', t)
-        return df  
+        if saison_IATA == "**Winter** :snowflake:":
+            return pd.read_excel('courbes_presentation_Winter.xlsx', t)
+        if saison_IATA == "**Summer** :sun_with_face:":
+            return pd.read_excel('courbes_presentation_Summer.xlsx', t) 
         
     col1, col2 = st.columns(2)
     with col1:
